@@ -1,0 +1,71 @@
+decl TAS_lock (lock_t * i32)-> void;
+decl TAS_unlock(lock_t * i32) -> void;
+decl TAS_not_taken(lock_t * i32) -> bool;
+decl TAS_try_acquire_lock (lock_t * i32) -> bool;
+
+var lock i32 = 0;
+var  THRESHOLD i32 = 4;
+// should be u32 but def can't compare u32?
+var _XBEGIN_STARTED i32 = 0;
+def fib (n i32) -> i32
+begin
+
+    TAS_lock(&lock);
+    if n < 2 then return n; fi
+    var a = fib(n - 1);
+    var b = fib(n - 2);
+    TAS_unlock(&lock);
+    return a + b;
+end
+def _xend() -> void
+begin
+end
+def _xbegin() -> i32
+begin
+return 0;
+end
+def our_xbegin() -> void
+begin
+start:
+  for var i i32 = 0; i < THRESHOLD; ++i do
+    if _xbegin() == _XBEGIN_STARTED then
+      while (!TAS_not_taken(&lock)) do
+      od
+      return;
+    fi
+  od
+  if TAS_try_acquire_lock(&lock) then
+    return;
+  fi
+  goto start;
+end
+/*
+void our_xbegin() {
+    start:
+    for (int i = 0; i < THRESHOLD; ++i) {
+        if (_xbegin() == _XBEGIN_STARTED) {
+            while (!lock_not_taken(&lock));
+            return;
+        }
+    }
+    if(try_acquire_lock(&lock)) {
+
+        return;
+    }
+    goto start;
+
+}*/
+def our_xend() -> void
+begin
+    if TAS_not_taken(&lock) then
+      _xend();
+    else
+      TAS_unlock(&lock);
+    fi
+end
+/*void our_xend() {
+    if (lock_not_taken(&lock))
+        _xend();
+    else
+        release_lock(&lock);
+}*/
