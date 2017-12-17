@@ -4,7 +4,7 @@ CFLAGS = -O3
 
 TARGET = transcation_test
 
-DEFSRC = software_tran.def
+DEFSRC = TASLock.def software_tran.def 
 CSRC = transcation_test.c
 
 OBJ = $(DEFSRC:.def=.o) $(CSRC:.c=.o) cuckoo.o
