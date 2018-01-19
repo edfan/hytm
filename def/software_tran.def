@@ -1,28 +1,38 @@
-decl TAS_lock (lock_t * i32)-> void;
-decl TAS_unlock(lock_t * i32) -> void;
-decl TAS_not_taken(lock_t * i32) -> bool;
-decl TAS_try_acquire_lock (lock_t * i32) -> bool;
+// Repeatedly tries to set m_locked to 1,
+// and takes the lock when m_locked is set to 1.
+export def TAS_lock(m_locked * i32)-> void
+begin
+    while __builtin_swap(&(m_locked[0]), 1) == 1 do
+    od
+end
+
+// Sets lock to 0, representing that the thread
+// has released the lock.
+export def TAS_unlock(lock * i32) -> void
+begin
+    __builtin_swap (&(lock[0]), 0);
+end
+
+export def TAS_try_acquire_lock (m_locked * i32)-> bool
+begin
+    return __builtin_swap(&(m_locked[0]), 1) != 1;
+end
+
+export def TAS_not_taken(lock * i32) -> bool
+begin
+    return lock[0] == 0; 
+end
 
 var lock i32 = 0;
-var  THRESHOLD i32 = 4;
+var THRESHOLD i32 = 4;
 // should be u32 but def can't compare u32?
 var _XBEGIN_STARTED i32 = 0;
 
-def _xend() -> void
-begin
-end
-
-def _xbegin() -> i32
-begin
-return 0;
-end
-
-
-export def our_xbegin() -> void
+export def hybrid_xbegin() -> void
 begin
 start:
   for var i i32 = 0; i < THRESHOLD; ++i do
-    if _xbegin() == _XBEGIN_STARTED then
+    if llvmxbegin == _XBEGIN_STARTED then
       while (!TAS_not_taken(&lock)) do
       od
       return;
@@ -34,10 +44,10 @@ start:
   goto start;
 end
 
-export def our_xend() -> void
+export def hybrid_xend() -> void
 begin
     if TAS_not_taken(&lock) then
-      _xend();
+      llvmxcommit;
     else
       TAS_unlock(&lock);
     fi
