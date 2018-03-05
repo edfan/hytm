@@ -1,7 +1,7 @@
 # Source, Executable, Includes, Library Defines
 #INCL   = loop.h defs.h
 TARGET := main
-SRC    = transcational_memory.c main.c 
+SRC    = transactional_memory.c main.c 
 OBJ := $(SRC:.c=.o)
 UNAME := $(shell uname)
 

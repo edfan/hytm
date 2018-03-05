@@ -2,10 +2,10 @@ DEF = def
 CC = clang-4.0
 CFLAGS = -O3
 
-TARGET = transcation_test
+TARGET = transaction_test
 
 DEFSRC = TASLock.def software_tran.def 
-CSRC = transcation_test.c
+CSRC = transaction_test.c
 
 OBJ = $(DEFSRC:.def=.o) $(CSRC:.c=.o) cuckoo.o
 HFILES = $(DEFSRC:.def=.h)

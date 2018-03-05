@@ -1,0 +1,3 @@
+What you're looking for is in def/software_tran.def.
+
+Compile it to an object using a DEF compiler that supports `LLVMXBegin`, create a static library called `libhytm.a` with `ar`, then place the generated library and header files in the appropriate locations.
